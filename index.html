@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SENTINEL — Equity Research Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0:     #f8f9fa;
+  --bg1:     #ffffff;
+  --bg2:     #ffffff;
+  --bg3:     #f1f3f4;
+  --bg4:     #e8eaed;
+  --line:    #e0e0e0;
+  --line2:   #dadce0;
+  --g0:      #1a7f37;
+  --g1:      #137333;
+  --g2:      #34a853;
+  --g3:      #a8d5b5;
+  --dim:     #9aa0a6;
+  --text:    #5f6368;
+  --text2:   #3c4043;
+  --bright:  #202124;
+  --white:   #202124;
+  --amber:   #e37400;
+  --red:     #d93025;
+  --blue:    #1a73e8;
+  --purple:  #8430ce;
+  --mono:    'DM Mono', monospace;
+  --head:    'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg0);
+  color: var(--text);
+  font-family: var(--mono);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* scanlines removed for light theme */
+
+/* grid removed for light theme */
+
+/* ── TOP BAR ── */
+/* ── INDICES STRIP ── */
+.indices-strip {
+  position: relative; z-index: 100;
+  display: flex; align-items: center; gap: 0;
+  background: #1a3a5c;
+  border-bottom: 1px solid #243d5c;
+  overflow-x: auto;
+  padding: 0 16px;
+  min-height: 22px;
+  scrollbar-width: none;
+}
+.indices-strip::-webkit-scrollbar { display: none; }
+
+.idx-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 20px 8px 0;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  margin-right: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.idx-item:last-child { border-right: none; }
+
+.idx-name {
+  font-family: var(--mono);
+  font-size: 9px; letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.6);
+}
+
+.idx-price {
+  font-family: var(--head);
+  font-size: 15px; font-weight: 700;
+  color: #ffffff;
+}
+
+.idx-change {
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.idx-change.pos { color: #81c995; background: rgba(129,201,149,0.15); }
+.idx-change.neg { color: #f28b82; background: rgba(242,139,130,0.15); }
+.idx-change.neu { color: rgba(255,255,255,0.4); }
+
+.idx-spark {
+  width: 60px; height: 24px;
+  flex-shrink: 0;
+}
+
+.idx-loading {
+  font-family: var(--mono);
+  font-size: 9px; letter-spacing: 2px;
+  color: rgba(255,255,255,0.3);
+  padding: 8px 16px;
+  animation: blink 1.5s infinite;
+}
+
+/* ── SPARKLINE ── */
+.spark-wrap {
+  padding: 0 16px 12px 20px;
+  border-bottom: 1px solid #f1f3f4;
+}
+.spark-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 8px; letter-spacing: 1.5px; color: #9aa0a6;
+  margin-bottom: 6px;
+}
+.spark-svg {
+  width: 100%; height: 56px;
+  display: block;
+}
+.spark-range {
+  display: flex; justify-content: space-between;
+  font-size: 8px; color: #bdc1c6;
+  margin-top: 3px;
+  font-family: var(--mono);
+}
+
+.topbar {
+  position: sticky; top: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 96px;
+  overflow: visible;
+  padding: 0 24px;
+  background: rgba(255,255,255,0.97);
+  border-bottom: 1px solid var(--line2);
+  backdrop-filter: blur(20px);
+}
+
+.logo-group { display: flex; align-items: center; gap: 16px; }
+
+.logo-diamond { display: none; }
+
+.logo-text {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: 42px;
+  letter-spacing: 6px;
+  color: #1a3a5c;
+}
+
+.logo-version {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: #137333;
+  border: 1px solid transparent;
+  padding: 2px 6px;
+  margin-left: 4px;
+  background: transparent;
+}
+
+.topbar-mid {
+  display: flex; align-items: center; gap: 24px;
+  font-size: 9px; letter-spacing: 2px; color: #5f6368;
+}
+
+.live-dot {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--g1);
+}
+
+.live-dot::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--g1);
+  box-shadow: 0 0 8px rgba(26,127,55,0.4);
+  animation: blink 2s infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+
+.call-badge {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--line2);
+  background: var(--bg3);
+  padding: 5px 12px;
+  font-size: 9px; letter-spacing: 1px; color: var(--text);
+}
+
+.call-n { font-size: 14px; font-weight: 700; color: var(--g0); }
+.call-n.warn { color: var(--amber); }
+.call-n.crit { color: var(--red); }
+
+.tbtn {
+  background: transparent;
+  border: 1px solid #dadce0;
+  color: #5f6368;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  padding: 6px 12px;
+  cursor: default;
+  transition: all 0.15s;
+  border-radius: 4px;
+}
+.tbtn:hover { border-color: #137333; color: #137333; background: #f1f8f4; }
+
+/* ── HERO SEARCH ── */
+.hero {
+  position: relative; z-index: 500;
+  padding: 48px 24px 32px;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.hero-title {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: clamp(28px, 4vw, 48px);
+  letter-spacing: 4px;
+  color: #1a3a5c;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.hero-title span { color: var(--g1); }
+
+.hero-sub {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text);
+  margin-bottom: 32px;
+}
+
+/* ── SEARCH BOX ── */
+.search-wrap {
+  position: relative;
+  max-width: 640px;
+  margin: 0 auto;
+  z-index: 9999;
+}
+
+.search-box {
+  display: flex; align-items: center;
+  background: #ffffff;
+  border: 1.5px solid #dadce0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+  z-index: 50;
+  border-radius: 4px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+
+.search-box:focus-within {
+  border-color: var(--g1);
+  box-shadow: 0 1px 12px rgba(26,115,53,0.15);
+}
+
+.search-icon {
+  padding: 0 16px;
+  color: var(--g2);
+  font-size: 14px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--white);
+  padding: 16px 0;
+  letter-spacing: 1px;
+  cursor: default;
+}
+
+.search-input::placeholder { color: var(--dim); font-weight: 300; }
+
+.search-kbd {
+  padding: 0 16px;
+  display: flex; gap: 6px;
+}
+
+.kbd {
+  font-size: 8px; letter-spacing: 1px;
+  border: 1px solid var(--line2);
+  color: var(--dim);
+  padding: 3px 6px;
+}
+
+/* ── AUTOCOMPLETE DROPDOWN ── */
+.dropdown {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: #ffffff;
+  border: 1.5px solid #dadce0;
+  border-top: none;
+  z-index: 9999;
+  max-height: 340px;
+  overflow-y: auto;
+  display: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  border-radius: 0 0 4px 4px;
+}
+
+.dropdown.open { display: block; }
+
+.dropdown::-webkit-scrollbar { width: 4px; }
+.dropdown::-webkit-scrollbar-track { background: #f1f3f4; }
+.dropdown::-webkit-scrollbar-thumb { background: #dadce0; border-radius: 4px; }
+
+.drop-group-label {
+  padding: 8px 16px 4px;
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: #137333;
+  border-top: 1px solid #f1f3f4;
+  background: #fafafa;
+}
+
+.drop-group-label:first-child { border-top: none; }
+
+.drop-item {
+  display: flex; align-items: center;
+  padding: 10px 16px;
+  cursor: default;
+  transition: background 0.1s;
+  gap: 14px;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.drop-item:hover, .drop-item.focused {
+  background: #f1f8f4;
+}
+
+.drop-ticker {
+  font-weight: 700;
+  font-size: 14px;
+  color: #1a3a5c;
+  min-width: 72px;
+  letter-spacing: 1px;
+}
+
+.drop-name {
+  flex: 1;
+  font-size: 11px;
+  color: #5f6368;
+}
+
+.drop-exch {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--blue);
+  border: 1px solid rgba(56,200,255,0.2);
+  background: rgba(56,200,255,0.05);
+  padding: 2px 6px;
+  min-width: 56px;
+  text-align: center;
+}
+
+.drop-sector {
+  font-size: 9px;
+  color: var(--dim);
+  min-width: 80px;
+  text-align: right;
+}
+
+.drop-empty {
+  padding: 20px 16px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 2px;
+}
+
+/* ── SETUP BANNER ── */
+.setup-banner {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 24px;
+  background: #e8f4fd;
+  border-bottom: 1px solid #1a73e8;
+  flex-wrap: wrap;
+}
+
+.setup-banner.hide { display: none; }
+
+.setup-text {
+  flex: 1; min-width: 200px;
+  font-size: 10px; color: #1a3a5c; letter-spacing: 0.5px; line-height: 1.6;
+}
+
+.setup-text a { color: var(--g0); }
+
+.setup-input {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+
+.setup-input input { flex: 1; min-width: 200px; }
+
+.setup-input input {
+  background: var(--bg2);
+  border: 1px solid rgba(240,184,64,0.3);
+  color: var(--bright);
+  font-family: var(--mono);
+  font-size: 16px;
+  padding: 8px 14px;
+  outline: none;
+  min-width: 280px;
+  transition: border-color 0.2s;
+}
+
+.setup-input input:focus { border-color: var(--g0); }
+
+/* ── MAIN CONTENT ── */
+.main {
+  position: relative; z-index: 10;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #f8f9fa;
+  min-height: calc(100vh - 52px);
+}
+
+/* ── STATS ROW ── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin-bottom: 24px;
+  border: 1px solid #dadce0;
+  background: #e0e0e0;
+  gap: 1px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.stat {
+  background: #ffffff;
+  padding: 14px 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0;
+  width: 100%; height: 1px;
+}
+
+.stat:nth-child(1)::after { background: var(--g0); }
+.stat:nth-child(2)::after { background: var(--g1); }
+.stat:nth-child(3)::after { background: var(--amber); }
+.stat:nth-child(4)::after { background: var(--red); }
+.stat:nth-child(5)::after { background: var(--blue); }
+
+.stat-n {
+  font-family: var(--head);
+  font-size: 30px;
+  font-weight: 700;
+  color: #202124;
+  line-height: 1;
+}
+
+.stat-l {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  margin-top: 3px;
+}
+
+/* ── TOOLBAR ── */
+.toolbar {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.sep { width: 1px; height: 18px; background: var(--line2); margin: 0 2px; }
+
+.pill {
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  color: #5f6368;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  padding: 5px 12px;
+  cursor: default;
+  transition: all 0.12s;
+  border-radius: 4px;
+}
+
+.pill:hover { border-color: #137333; color: #137333; background: #f1f8f4; }
+.pill.on { border-color: #137333; color: #137333; background: #e6f4ea; font-weight:600; }
+.pill.on-a { border-color: var(--amber); color: var(--amber); background: #fef9e7; }
+.pill.on-r { border-color: var(--red); color: var(--red); background: #fce8e6; }
+
+.tlabel { font-size: 8px; letter-spacing: 3px; color: var(--line2); }
+
+/* ── CARDS ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 12px;
+}
+
+/* ── CARD ── */
+.card {
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  animation: cin 0.3s ease both;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+@keyframes cin { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.card:hover {
+  border-color: #137333;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
+}
+
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 3px; height: 100%;
+}
+
+.card.BUY::before   { background: #1a7f37; }
+.card.WATCH::before { background: #e37400; }
+.card.AVOID::before { background: #d93025; }
+.card.PENDING::before { background: #dadce0; }
+
+/* ── CARD HEAD ── */
+.chead {
+  padding: 14px 16px 12px 20px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.cticker {
+  font-family: var(--head);
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: #1a3a5c;
+  line-height: 1;
+}
+
+.cname {
+  font-size: 10px;
+  color: var(--text);
+  margin-top: 2px;
+  max-width: 200px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.csector {
+  font-size: 8px; letter-spacing: 1.5px;
+  color: var(--purple);
+  margin-top: 3px;
+}
+
+.chead-r {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+}
+
+.cexch {
+  font-size: 8px; letter-spacing: 2px;
+  color: var(--blue);
+  border: 1px solid rgba(56,200,255,0.2);
+  background: rgba(56,200,255,0.04);
+  padding: 2px 7px;
+}
+
+.csignal {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  padding: 4px 10px; border: 1px solid;
+}
+
+.csignal::before { content:''; width:5px; height:5px; border-radius:50%; }
+
+.csignal.BUY   { color:var(--g0);   border-color:rgba(0,255,136,0.35); background:rgba(0,255,136,0.05); }
+.csignal.BUY::before   { background:var(--g0);   box-shadow:0 0 6px var(--g0); }
+.csignal.WATCH { color:var(--amber); border-color:rgba(240,184,64,0.35); background:rgba(240,184,64,0.05); }
+.csignal.WATCH::before { background:var(--amber); box-shadow:0 0 6px var(--amber); }
+.csignal.AVOID { color:var(--red);   border-color:rgba(255,51,85,0.35);  background:rgba(255,51,85,0.05);  }
+.csignal.AVOID::before { background:var(--red);   box-shadow:0 0 6px var(--red); }
+.csignal.PENDING { color:var(--dim); border-color:var(--line2); }
+.csignal.PENDING::before { background:var(--dim); }
+
+/* ── PRICE ROW ── */
+.cprice-row {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 10px 16px 10px 20px;
+  border-bottom: 1px solid #f1f3f4;
+  background: #fafafa;
+}
+
+.cprice {
+  font-family: var(--head);
+  font-size: 24px; font-weight: 700;
+  color: #202124;
+}
+
+.cchange {
+  font-size: 11px; font-weight: 500;
+  padding: 2px 7px;
+}
+.cchange.pos { color: var(--g0); background: rgba(0,255,136,0.08); }
+.cchange.neg { color: var(--red);   background: rgba(255,51,85,0.08);  }
+.cchange.neu { color: var(--dim); }
+
+.c52w {
+  margin-left: auto;
+  font-size: 8px; letter-spacing: 1px;
+  color: var(--dim);
+}
+
+/* ── SCORE ── */
+.cscore { padding: 10px 16px 10px 20px; border-bottom: 1px solid var(--line); }
+
+.cscore-hd {
+  display: flex; justify-content: space-between;
+  font-size: 8px; letter-spacing: 2px; color: var(--dim);
+  margin-bottom: 6px;
+}
+
+.cscore-n {
+  font-family: var(--head);
+  font-size: 18px; font-weight: 700;
+}
+.cscore-n.h { color: var(--g0); }
+.cscore-n.m { color: var(--amber); }
+.cscore-n.l { color: var(--red); }
+.cscore-n.na { color: var(--dim); }
+
+.cbar { height: 2px; background: var(--line); overflow: hidden; }
+.cbar-fill { height: 100%; transition: width 0.8s ease; }
+.cbar-fill.h { background: var(--g0); box-shadow: 0 0 8px rgba(0,255,136,0.5); }
+.cbar-fill.m { background: var(--amber); box-shadow: 0 0 8px rgba(240,184,64,0.5); }
+.cbar-fill.l { background: var(--red);   box-shadow: 0 0 8px rgba(255,51,85,0.5);   }
+
+/* ── METRICS ── */
+.cmet { padding: 10px 16px 10px 20px; border-bottom: 1px solid var(--line); }
+.cmet-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+
+.cmet-cell {
+  background: #f8f9fa;
+  border: 1px solid #e8eaed;
+  padding: 7px 8px;
+  border-radius: 4px;
+}
+.cmet-l { font-size: 7px; letter-spacing: 1.5px; color: var(--dim); margin-bottom: 3px; }
+.cmet-v { font-size: 12px; color: var(--bright); font-weight: 500; }
+.cmet-v.pos { color: var(--g0); }
+.cmet-v.neg { color: var(--red); }
+
+/* ── TARGET BAR ── */
+.ctarget { padding: 8px 16px 8px 20px; border-bottom: 1px solid #f1f3f4; background: #fafbfc; }
+.ctarget-hd { display: flex; justify-content: space-between; font-size: 8px; letter-spacing: 1px; color: var(--dim); margin-bottom: 6px; }
+.cupside { font-weight: 700; color: var(--g0); }
+.cupside.neg { color: var(--red); }
+.ctarget-track { position: relative; height: 4px; background: var(--line); border-radius: 2px; }
+.ctarget-fill { height: 100%; background: linear-gradient(90deg, var(--g3), var(--g1)); border-radius: 2px; transition: width 0.8s; }
+.ctarget-dot { position: absolute; top: -4px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--bg0); transform: translateX(-50%); }
+.ctarget-dot.cur { background: var(--blue); }
+.ctarget-dot.tgt { background: var(--g0); box-shadow: 0 0 6px var(--g0); }
+
+/* ── GROWTH ── */
+.cgrowth { padding: 10px 16px 10px 20px; border-bottom: 1px solid var(--line); }
+
+.cgrow-item {
+  display: flex; gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid #f1f3f4;
+  font-size: 11px;
+}
+.cgrow-item:last-child { border-bottom: none; padding-bottom: 0; }
+.cgrow-tag { font-size: 7px; letter-spacing: 1.5px; color: var(--dim); min-width: 58px; padding-top: 2px; }
+.cgrow-txt { color: #5f6368; font-size: 10px; line-height: 1.5; }
+
+/* ── TAGS ── */
+.ctags { padding: 8px 16px 8px 20px; display: flex; gap: 5px; flex-wrap: wrap; }
+.ctag {
+  font-size: 8px; letter-spacing: 0.5px;
+  padding: 2px 7px; border: 1px solid;
+}
+.ctag.cat  { color: var(--g1);   border-color: rgba(0,255,136,0.2); background: rgba(0,255,136,0.03); }
+.ctag.risk { color: var(--red);  border-color: rgba(255,51,85,0.2);  background: rgba(255,51,85,0.03);  }
+
+/* ── CARD FOOT ── */
+.cfoot {
+  padding: 8px 16px 8px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: #fafafa;
+  border-top: 1px solid #f1f3f4;
+}
+
+.cupdated { font-size: 8px; letter-spacing: 1px; color: var(--dim); }
+
+.cbtns { display: flex; gap: 6px; }
+
+.cbtn {
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 8px; letter-spacing: 1.5px;
+  padding: 5px 10px; border: 1px solid;
+  cursor: default;
+  transition: all 0.12s;
+}
+
+.cbtn-fetch {
+  color: var(--g1); border-color: rgba(0,255,136,0.25);
+}
+.cbtn-fetch:hover { background: rgba(0,255,136,0.06); color: var(--g0); border-color: var(--g1); }
+
+.cbtn-del {
+  color: var(--dim); border-color: var(--line2);
+}
+.cbtn-del:hover { color: var(--red); border-color: rgba(255,51,85,0.3); }
+
+/* ── PENDING ── */
+.cpending {
+  padding: 28px 20px;
+  text-align: center;
+  color: var(--dim);
+}
+.cpending-title { font-size: 9px; letter-spacing: 2px; margin-bottom: 6px; }
+.cpending-sub { font-size: 10px; }
+
+/* ── ERROR ── */
+.cerr {
+  margin: 8px 16px 8px 20px;
+  background: rgba(255,51,85,0.05);
+  border: 1px solid rgba(255,51,85,0.2);
+  color: var(--red);
+  font-size: 9px; line-height: 1.5;
+  padding: 8px 12px;
+}
+
+/* ── LOADING ── */
+.cloading {
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.95);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; z-index: 50;
+}
+.cloading-txt { font-size: 9px; letter-spacing: 3px; color: #137333; animation: blink 1s infinite; }
+.cloading-bar { width: 140px; height: 2px; background: var(--line); overflow: hidden; }
+.cloading-fill {
+  height: 100%;
+  background: #137333;
+  animation: sweep 1.2s ease-in-out infinite;
+}
+@keyframes sweep { 0%{width:0%;margin-left:0} 50%{width:50%} 100%{width:0%;margin-left:100%} }
+.cloading-sub { font-size: 8px; letter-spacing: 1.5px; color: var(--dim); }
+
+/* ── EMPTY STATE ── */
+.empty {
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 80px 20px;
+}
+.empty-icon { font-size: 40px; opacity: 0.08; margin-bottom: 16px; }
+.empty-title { font-size: 11px; letter-spacing: 4px; color: #9aa0a6; margin-bottom: 6px; }
+.empty-sub { font-size: 10px; color: #bdc1c6; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 20px; right: 20px; z-index: 999;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  font-size: 10px; letter-spacing: 1px;
+  padding: 10px 18px;
+  opacity: 0; transform: translateY(30px);
+  transition: all 0.25s;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  border-radius: 4px;
+  color: #202124;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.ok  { border-left: 2px solid var(--g0); }
+.toast.err { border-left: 2px solid var(--red); }
+.toast.w   { border-left: 2px solid var(--amber); }
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  /* Topbar */
+  .topbar { padding: 0 12px; height: 96px; }
+  .topbar-mid { display: none; }
+  .logo-text { font-size: 15px; letter-spacing: 3px; }
+  .logo-version { display: none; }
+  .call-badge { padding: 4px 8px; font-size: 8px; }
+  .call-badge .call-n { font-size: 12px; }
+
+  /* Hero */
+  .hero { padding: 24px 16px 20px; }
+  .hero-title { font-size: 22px; letter-spacing: 2px; }
+  .hero-sub { font-size: 8px; letter-spacing: 1px; }
+  .search-input { font-size: 16px; padding: 12px 0; }
+  .search-kbd { display: none; }
+
+  /* Indices */
+  .indices-strip { padding: 0 12px; }
+  .idx-item { padding: 6px 14px 6px 0; margin-right: 14px; }
+  .idx-price { font-size: 13px; }
+
+  /* Setup */
+  .setup-banner { flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px 16px; }
+  .setup-input { width: 100%; }
+  .setup-input input { min-width: 0; flex: 1; font-size: 16px; }
+
+  /* Main */
+  .main { padding: 12px; }
+
+  /* Stats */
+  .stats { grid-template-columns: repeat(3, 1fr); }
+  .stat-n { font-size: 22px; }
+  .stat-l { font-size: 7px; }
+
+  /* Toolbar */
+  .toolbar { gap: 5px; }
+  .pill { font-size: 8px; padding: 4px 9px; }
+  .sep { display: none; }
+  .tbtn { font-size: 8px; padding: 5px 10px; }
+
+  /* Cards */
+  .grid { grid-template-columns: 1fr; gap: 10px; }
+  .cticker { font-size: 22px; }
+  .cmet-grid { grid-template-columns: repeat(2, 1fr); }
+  .cprice { font-size: 20px; }
+  .cscore-n { font-size: 15px; }
+
+  /* Drop */
+  .drop-sector { display: none; }
+  .drop-exch { min-width: 44px; font-size: 7px; }
+}
+
+@media(max-width:400px){
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .hero-title { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo-group">
+  <img src="data:image/png;base64,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" alt="SENTINEL" style="height:80px;width:auto;object-fit:contain;display:block;" />
+    <div>
+      <div class="logo-text">SENTINEL</div>
+    </div>
+    <span class="logo-version">v3.0</span>
+  </div>
+  <div class="topbar-mid">
+    <div class="live-dot">MARKET DATA LIVE</div>
+    <span>ALPHA VANTAGE ENGINE</span>
+    <span id="clkTime"></span>
+  </div>
+  <div class="topbar-right">
+    <div class="call-badge">
+      <span>AV CALLS</span>
+      <span class="call-n" id="callN">25</span>
+      <span>/ 25</span>
+    </div>
+    <button class="tbtn" onclick="resetCalls()">↺ RESET</button>
+  </div>
+</div>
+
+
+<!-- INDICES STRIP -->
+<div class="indices-strip" id="indicesStrip"></div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-title">EQUITY <span>RESEARCH</span> PLATFORM</div>
+  <div class="hero-sub">INSTITUTIONAL-GRADE MARKET INTELLIGENCE · JSE · ASX · NYSE · NASDAQ</div>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <div class="search-icon">⌕</div>
+      <input
+        type="text"
+        class="search-input"
+        id="searchIn"
+        placeholder="Search ticker or company name…"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <div class="search-kbd">
+        <span class="kbd">↑↓</span>
+        <span class="kbd">↵</span>
+        <span class="kbd">ESC</span>
+      </div>
+    </div>
+    <div class="dropdown" id="dropdown"></div>
+  </div>
+</div>
+
+<!-- ALPHA VANTAGE API KEY BANNER -->
+<div class="setup-banner" id="avBanner">
+  <div class="setup-text">
+    🔑 <strong>ALPHA VANTAGE API KEY REQUIRED</strong> — Get your free key (no credit card) at
+    <a href="https://www.alphavantage.co/support/#api-key" target="_blank">alphavantage.co</a>.
+    25 free calls/day. Your key is stored locally in your browser only.
+  </div>
+  <div class="setup-input">
+    <input type="text" id="avKeyInput" placeholder="Paste your Alpha Vantage API key…" />
+    <button class="tbtn" onclick="saveAvKey()">SAVE KEY</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- STATS -->
+  <div class="stats" id="statsBar">
+    <div class="stat" id="statTotal"><div class="stat-n" id="sTotal">0</div><div class="stat-l">TARGETS</div></div>
+    <div class="stat" id="statBuy"  ><div class="stat-n" id="sBuy"  >0</div><div class="stat-l">BUY SIGNALS</div></div>
+    <div class="stat" id="statWatch"><div class="stat-n" id="sWatch">0</div><div class="stat-l">WATCH</div></div>
+    <div class="stat" id="statAvoid"><div class="stat-n" id="sAvoid">0</div><div class="stat-l">AVOID</div></div>
+    <div class="stat" id="statAvg"  ><div class="stat-n" id="sAvg"  >—</div><div class="stat-l">AVG SCORE</div></div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <span class="tlabel">VIEW:</span>
+    <button class="pill on"  onclick="setFilter('ALL',this)">ALL</button>
+    <div class="sep"></div>
+    <button class="pill" onclick="setFilter('JSE',this)">JSE</button>
+    <button class="pill" onclick="setFilter('ASX',this)">ASX</button>
+    <button class="pill" onclick="setFilter('NYSE',this)">NYSE</button>
+    <button class="pill" onclick="setFilter('NASDAQ',this)">NASDAQ</button>
+    <button class="pill" onclick="setFilter('ETF',this)">ETF</button>
+    <div class="sep"></div>
+    <button class="pill on"  onclick="setFilter('BUY',this)"  id="pbuy">▲ BUY</button>
+    <button class="pill on-a" onclick="setFilter('WATCH',this)" id="pwatch">◉ WATCH</button>
+    <button class="pill on-r" onclick="setFilter('AVOID',this)" id="pavoid">▼ AVOID</button>
+    <div style="flex:1"></div>
+    <button class="tbtn" onclick="fetchAll()" style="font-size:9px">⚡ FETCH ALL PENDING</button>
+  </div>
+
+  <!-- GRID -->
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STOCK DATABASE  — 300+ tickers across 4 exchanges
+// ══════════════════════════════════════════════
+const STOCKS = [
+  // ── JSE (South Africa) ──
+  {t:'NPN',  n:'Naspers Limited',              e:'JSE',    s:'Technology'},
+  {t:'PRX',  n:'Prosus N.V.',                  e:'JSE',    s:'Technology'},
+  {t:'SOL',  n:'Sasol Limited',                e:'JSE',    s:'Energy'},
+  {t:'AGL',  n:'Anglo American PLC',           e:'JSE',    s:'Mining & Resources'},
+  {t:'BTI',  n:'British American Tobacco',     e:'JSE',    s:'Consumer Goods'},
+  {t:'VOD',  n:'Vodacom Group',                e:'JSE',    s:'Telecommunications'},
+  {t:'REM',  n:'Remgro Limited',               e:'JSE',    s:'Finance & Banking'},
+  {t:'SHP',  n:'Shoprite Holdings',            e:'JSE',    s:'Consumer Goods'},
+  {t:'MTN',  n:'MTN Group Limited',            e:'JSE',    s:'Telecommunications'},
+  {t:'SBK',  n:'Standard Bank Group',          e:'JSE',    s:'Finance & Banking'},
+  {t:'FSR',  n:'FirstRand Limited',            e:'JSE',    s:'Finance & Banking'},
+  {t:'NED',  n:'Nedbank Group',                e:'JSE',    s:'Finance & Banking'},
+  {t:'ABG',  n:'Absa Group Limited',           e:'JSE',    s:'Finance & Banking'},
+  {t:'INP',  n:'Investec PLC',                 e:'JSE',    s:'Finance & Banking'},
+  {t:'BVT',  n:'Bidvest Group',                e:'JSE',    s:'Industrial'},
+  {t:'AMS',  n:'Anglo American Platinum',      e:'JSE',    s:'Mining & Resources'},
+  {t:'IMP',  n:'Impala Platinum Holdings',     e:'JSE',    s:'Mining & Resources'},
+  {t:'SSW',  n:'Sibanye Stillwater',           e:'JSE',    s:'Mining & Resources'},
+  {t:'GFI',  n:'Gold Fields Limited',          e:'JSE',    s:'Mining & Resources'},
+  {t:'HAR',  n:'Harmony Gold Mining',          e:'JSE',    s:'Mining & Resources'},
+  {t:'RES',  n:'Resilient REIT',               e:'JSE',    s:'Finance & Banking'},
+  {t:'GRT',  n:'Growthpoint Properties',       e:'JSE',    s:'Finance & Banking'},
+  {t:'HYP',  n:'Hyprop Investments',           e:'JSE',    s:'Finance & Banking'},
+  {t:'MNP',  n:'Mondi PLC',                    e:'JSE',    s:'Industrial'},
+  {t:'SPP',  n:'Spar Group',                   e:'JSE',    s:'Consumer Goods'},
+  {t:'WHL',  n:'Woolworths Holdings',          e:'JSE',    s:'Consumer Goods'},
+  {t:'MRP',  n:'Mr Price Group',               e:'JSE',    s:'Consumer Goods'},
+  {t:'TFG',  n:'The Foschini Group',           e:'JSE',    s:'Consumer Goods'},
+  {t:'TBS',  n:'Tiger Brands',                 e:'JSE',    s:'Consumer Goods'},
+  {t:'AVI',  n:'AVI Limited',                  e:'JSE',    s:'Consumer Goods'},
+  {t:'RCL',  n:'RCL Foods',                    e:'JSE',    s:'Consumer Goods'},
+  {t:'PIK',  n:'Pick n Pay Stores',            e:'JSE',    s:'Consumer Goods'},
+  {t:'CPI',  n:'Capitec Bank Holdings',        e:'JSE',    s:'Finance & Banking'},
+  {t:'DSY',  n:'Discovery Limited',            e:'JSE',    s:'Healthcare'},
+  {t:'MED',  n:'Mediclinic International',     e:'JSE',    s:'Healthcare'},
+  {t:'NHC',  n:'Netcare Limited',              e:'JSE',    s:'Healthcare'},
+  {t:'LHC',  n:'Life Healthcare Group',        e:'JSE',    s:'Healthcare'},
+  {t:'SNH',  n:'Steinhoff International',      e:'JSE',    s:'Consumer Goods'},
+  {t:'SGL',  n:'Sibanye Gold',                 e:'JSE',    s:'Mining & Resources'},
+  {t:'DCP',  n:'DataTec Limited',              e:'JSE',    s:'Technology'},
+  {t:'OCE',  n:'Oceana Group',                 e:'JSE',    s:'Consumer Goods'},
+  {t:'EXX',  n:'Exxaro Resources',             e:'JSE',    s:'Mining & Resources'},
+  {t:'KIO',  n:'Kumba Iron Ore',               e:'JSE',    s:'Mining & Resources'},
+  {t:'MCG',  n:'MultiChoice Group',            e:'JSE',    s:'Telecommunications'},
+  {t:'TKG',  n:'Telkom SA',                    e:'JSE',    s:'Telecommunications'},
+  {t:'SLM',  n:'Sanlam Limited',               e:'JSE',    s:'Finance & Banking'},
+  {t:'OMU',  n:'Old Mutual Limited',           e:'JSE',    s:'Finance & Banking'},
+  {t:'MMI',  n:'Momentum Metropolitan',        e:'JSE',    s:'Finance & Banking'},
+  {t:'APN',  n:'Aspen Pharmacare',             e:'JSE',    s:'Healthcare'},
+  {t:'RDF',  n:'Redefine Properties',          e:'JSE',    s:'Finance & Banking'},
+  {t:'EMI',  n:'Empires Property Holdings',    e:'JSE',    s:'Finance & Banking'},
+  {t:'SAP',  n:'SAPPI Limited',                e:'JSE',    s:'Industrial'},
+  {t:'MUR',  n:'Murray & Roberts',             e:'JSE',    s:'Industrial'},
+  {t:'GND',  n:'Grindrod Limited',             e:'JSE',    s:'Industrial'},
+  {t:'WBO',  n:'Wilson Bayly Holmes-Ovcon',    e:'JSE',    s:'Industrial'},
+  {t:'MSP',  n:'MiX Telematics',               e:'JSE',    s:'Technology'},
+
+  // ── ASX (Australia) ──
+  {t:'BHP',  n:'BHP Group Limited',            e:'ASX',    s:'Mining & Resources'},
+  {t:'RIO',  n:'Rio Tinto Limited',            e:'ASX',    s:'Mining & Resources'},
+  {t:'CBA',  n:'Commonwealth Bank',            e:'ASX',    s:'Finance & Banking'},
+  {t:'WBC',  n:'Westpac Banking Corp',         e:'ASX',    s:'Finance & Banking'},
+  {t:'ANZ',  n:'ANZ Banking Group',            e:'ASX',    s:'Finance & Banking'},
+  {t:'NAB',  n:'National Australia Bank',      e:'ASX',    s:'Finance & Banking'},
+  {t:'MQG',  n:'Macquarie Group',              e:'ASX',    s:'Finance & Banking'},
+  {t:'WES',  n:'Wesfarmers Limited',           e:'ASX',    s:'Consumer Goods'},
+  {t:'WOW',  n:'Woolworths Group',             e:'ASX',    s:'Consumer Goods'},
+  {t:'CSL',  n:'CSL Limited',                  e:'ASX',    s:'Healthcare'},
+  {t:'FMG',  n:'Fortescue Metals Group',       e:'ASX',    s:'Mining & Resources'},
+  {t:'NCM',  n:'Newcrest Mining',              e:'ASX',    s:'Mining & Resources'},
+  {t:'OZL',  n:'OZ Minerals',                  e:'ASX',    s:'Mining & Resources'},
+  {t:'STO',  n:'Santos Limited',               e:'ASX',    s:'Energy'},
+  {t:'WPL',  n:'Woodside Energy Group',        e:'ASX',    s:'Energy'},
+  {t:'ORG',  n:'Origin Energy',                e:'ASX',    s:'Energy'},
+  {t:'QBE',  n:'QBE Insurance Group',          e:'ASX',    s:'Finance & Banking'},
+  {t:'SUN',  n:'Suncorp Group',                e:'ASX',    s:'Finance & Banking'},
+  {t:'IAG',  n:'Insurance Australia Group',    e:'ASX',    s:'Finance & Banking'},
+  {t:'AMC',  n:'Amcor PLC',                    e:'ASX',    s:'Industrial'},
+  {t:'BXB',  n:'Brambles Limited',             e:'ASX',    s:'Industrial'},
+  {t:'TCL',  n:'Transurban Group',             e:'ASX',    s:'Industrial'},
+  {t:'SYD',  n:'Sydney Airport',               e:'ASX',    s:'Industrial'},
+  {t:'COL',  n:'Coles Group',                  e:'ASX',    s:'Consumer Goods'},
+  {t:'REA',  n:'REA Group',                    e:'ASX',    s:'Technology'},
+  {t:'SEK',  n:'Seek Limited',                 e:'ASX',    s:'Technology'},
+  {t:'CAR',  n:'Carsales.com',                 e:'ASX',    s:'Technology'},
+  {t:'XRO',  n:'Xero Limited',                 e:'ASX',    s:'Technology'},
+  {t:'APT',  n:'Afterpay Limited',             e:'ASX',    s:'Technology'},
+  {t:'WTC',  n:'WiseTech Global',              e:'ASX',    s:'Technology'},
+  {t:'CPU',  n:'Computershare Limited',        e:'ASX',    s:'Technology'},
+  {t:'TLS',  n:'Telstra Group',                e:'ASX',    s:'Telecommunications'},
+  {t:'TPG',  n:'TPG Telecom',                  e:'ASX',    s:'Telecommunications'},
+  {t:'MIN',  n:'Mineral Resources',            e:'ASX',    s:'Mining & Resources'},
+  {t:'S32',  n:'South32 Limited',              e:'ASX',    s:'Mining & Resources'},
+  {t:'ILU',  n:'Iluka Resources',              e:'ASX',    s:'Mining & Resources'},
+  {t:'AWC',  n:'Alumina Limited',              e:'ASX',    s:'Mining & Resources'},
+  {t:'NST',  n:'Northern Star Resources',      e:'ASX',    s:'Mining & Resources'},
+  {t:'EVN',  n:'Evolution Mining',             e:'ASX',    s:'Mining & Resources'},
+  {t:'ALL',  n:'Aristocrat Leisure',           e:'ASX',    s:'Consumer Goods'},
+  {t:'TAH',  n:'Tabcorp Holdings',             e:'ASX',    s:'Consumer Goods'},
+  {t:'CWN',  n:'Crown Resorts',                e:'ASX',    s:'Consumer Goods'},
+  {t:'RHC',  n:'Ramsay Health Care',           e:'ASX',    s:'Healthcare'},
+  {t:'SHL',  n:'Sonic Healthcare',             e:'ASX',    s:'Healthcare'},
+  {t:'COH',  n:'Cochlear Limited',             e:'ASX',    s:'Healthcare'},
+  {t:'PME',  n:'Pro Medicus',                  e:'ASX',    s:'Healthcare'},
+  {t:'RMD',  n:'ResMed Inc',                   e:'ASX',    s:'Healthcare'},
+  {t:'SGP',  n:'Stockland Group',              e:'ASX',    s:'Finance & Banking'},
+  {t:'GPT',  n:'GPT Group',                    e:'ASX',    s:'Finance & Banking'},
+  {t:'DXS',  n:'Dexus',                        e:'ASX',    s:'Finance & Banking'},
+
+  // ── NYSE ──
+  {t:'JPM',  n:'JPMorgan Chase & Co.',         e:'NYSE',   s:'Finance & Banking'},
+  {t:'BAC',  n:'Bank of America',              e:'NYSE',   s:'Finance & Banking'},
+  {t:'WFC',  n:'Wells Fargo & Co.',            e:'NYSE',   s:'Finance & Banking'},
+  {t:'GS',   n:'Goldman Sachs Group',          e:'NYSE',   s:'Finance & Banking'},
+  {t:'MS',   n:'Morgan Stanley',               e:'NYSE',   s:'Finance & Banking'},
+  {t:'C',    n:'Citigroup Inc.',               e:'NYSE',   s:'Finance & Banking'},
+  {t:'BLK',  n:'BlackRock Inc.',               e:'NYSE',   s:'Finance & Banking'},
+  {t:'AXP',  n:'American Express',             e:'NYSE',   s:'Finance & Banking'},
+  {t:'BRK.B',n:'Berkshire Hathaway B',         e:'NYSE',   s:'Finance & Banking'},
+  {t:'V',    n:'Visa Inc.',                    e:'NYSE',   s:'Finance & Banking'},
+  {t:'MA',   n:'Mastercard Inc.',              e:'NYSE',   s:'Finance & Banking'},
+  {t:'XOM',  n:'Exxon Mobil Corp.',            e:'NYSE',   s:'Energy'},
+  {t:'CVX',  n:'Chevron Corporation',          e:'NYSE',   s:'Energy'},
+  {t:'COP',  n:'ConocoPhillips',               e:'NYSE',   s:'Energy'},
+  {t:'SLB',  n:'SLB (Schlumberger)',           e:'NYSE',   s:'Energy'},
+  {t:'OXY',  n:'Occidental Petroleum',         e:'NYSE',   s:'Energy'},
+  {t:'T',    n:'AT&T Inc.',                    e:'NYSE',   s:'Telecommunications'},
+  {t:'VZ',   n:'Verizon Communications',       e:'NYSE',   s:'Telecommunications'},
+  {t:'KO',   n:'Coca-Cola Company',            e:'NYSE',   s:'Consumer Goods'},
+  {t:'PEP',  n:'PepsiCo Inc.',                 e:'NYSE',   s:'Consumer Goods'},
+  {t:'PG',   n:'Procter & Gamble',             e:'NYSE',   s:'Consumer Goods'},
+  {t:'PM',   n:'Philip Morris Int.',           e:'NYSE',   s:'Consumer Goods'},
+  {t:'MO',   n:'Altria Group',                 e:'NYSE',   s:'Consumer Goods'},
+  {t:'CL',   n:'Colgate-Palmolive',            e:'NYSE',   s:'Consumer Goods'},
+  {t:'WMT',  n:'Walmart Inc.',                 e:'NYSE',   s:'Consumer Goods'},
+  {t:'TGT',  n:'Target Corporation',           e:'NYSE',   s:'Consumer Goods'},
+  {t:'HD',   n:'Home Depot Inc.',              e:'NYSE',   s:'Consumer Goods'},
+  {t:'LOW',  n:'Lowe\'s Companies',            e:'NYSE',   s:'Consumer Goods'},
+  {t:'NKE',  n:'Nike Inc.',                    e:'NYSE',   s:'Consumer Goods'},
+  {t:'MCD',  n:'McDonald\'s Corporation',      e:'NYSE',   s:'Consumer Goods'},
+  {t:'SBUX', n:'Starbucks Corporation',        e:'NYSE',   s:'Consumer Goods'},
+  {t:'PFE',  n:'Pfizer Inc.',                  e:'NYSE',   s:'Healthcare'},
+  {t:'JNJ',  n:'Johnson & Johnson',            e:'NYSE',   s:'Healthcare'},
+  {t:'MRK',  n:'Merck & Co.',                  e:'NYSE',   s:'Healthcare'},
+  {t:'ABT',  n:'Abbott Laboratories',          e:'NYSE',   s:'Healthcare'},
+  {t:'MDT',  n:'Medtronic PLC',                e:'NYSE',   s:'Healthcare'},
+  {t:'UNH',  n:'UnitedHealth Group',           e:'NYSE',   s:'Healthcare'},
+  {t:'CVS',  n:'CVS Health Corp.',             e:'NYSE',   s:'Healthcare'},
+  {t:'BMY',  n:'Bristol-Myers Squibb',         e:'NYSE',   s:'Healthcare'},
+  {t:'LLY',  n:'Eli Lilly and Co.',            e:'NYSE',   s:'Healthcare'},
+  {t:'BA',   n:'Boeing Company',               e:'NYSE',   s:'Industrial'},
+  {t:'GE',   n:'GE Aerospace',                 e:'NYSE',   s:'Industrial'},
+  {t:'HON',  n:'Honeywell International',      e:'NYSE',   s:'Industrial'},
+  {t:'CAT',  n:'Caterpillar Inc.',             e:'NYSE',   s:'Industrial'},
+  {t:'DE',   n:'Deere & Company',              e:'NYSE',   s:'Industrial'},
+  {t:'UPS',  n:'United Parcel Service',        e:'NYSE',   s:'Industrial'},
+  {t:'FDX',  n:'FedEx Corporation',            e:'NYSE',   s:'Industrial'},
+  {t:'LMT',  n:'Lockheed Martin',              e:'NYSE',   s:'Industrial'},
+  {t:'RTX',  n:'Raytheon Technologies',        e:'NYSE',   s:'Industrial'},
+  {t:'NEM',  n:'Newmont Corporation',          e:'NYSE',   s:'Mining & Resources'},
+  {t:'FCX',  n:'Freeport-McMoRan',             e:'NYSE',   s:'Mining & Resources'},
+  {t:'AA',   n:'Alcoa Corporation',            e:'NYSE',   s:'Mining & Resources'},
+  {t:'X',    n:'United States Steel',          e:'NYSE',   s:'Industrial'},
+  {t:'NUE',  n:'Nucor Corporation',            e:'NYSE',   s:'Industrial'},
+
+  // ── NASDAQ ──
+  {t:'AAPL', n:'Apple Inc.',                   e:'NASDAQ', s:'Technology'},
+  {t:'MSFT', n:'Microsoft Corporation',        e:'NASDAQ', s:'Technology'},
+  {t:'GOOGL',n:'Alphabet Inc. (Google)',        e:'NASDAQ', s:'Technology'},
+  {t:'AMZN', n:'Amazon.com Inc.',              e:'NASDAQ', s:'Technology'},
+  {t:'META', n:'Meta Platforms Inc.',          e:'NASDAQ', s:'Technology'},
+  {t:'NVDA', n:'NVIDIA Corporation',           e:'NASDAQ', s:'Technology'},
+  {t:'TSLA', n:'Tesla Inc.',                   e:'NASDAQ', s:'Technology'},
+  {t:'NFLX', n:'Netflix Inc.',                 e:'NASDAQ', s:'Technology'},
+  {t:'ADBE', n:'Adobe Inc.',                   e:'NASDAQ', s:'Technology'},
+  {t:'CRM',  n:'Salesforce Inc.',              e:'NASDAQ', s:'Technology'},
+  {t:'ORCL', n:'Oracle Corporation',           e:'NASDAQ', s:'Technology'},
+  {t:'INTC', n:'Intel Corporation',            e:'NASDAQ', s:'Technology'},
+  {t:'AMD',  n:'Advanced Micro Devices',       e:'NASDAQ', s:'Technology'},
+  {t:'QCOM', n:'Qualcomm Inc.',                e:'NASDAQ', s:'Technology'},
+  {t:'AVGO', n:'Broadcom Inc.',                e:'NASDAQ', s:'Technology'},
+  {t:'TXN',  n:'Texas Instruments',            e:'NASDAQ', s:'Technology'},
+  {t:'AMAT', n:'Applied Materials',            e:'NASDAQ', s:'Technology'},
+  {t:'MU',   n:'Micron Technology',            e:'NASDAQ', s:'Technology'},
+  {t:'LRCX', n:'Lam Research',                 e:'NASDAQ', s:'Technology'},
+  {t:'KLAC', n:'KLA Corporation',              e:'NASDAQ', s:'Technology'},
+  {t:'PYPL', n:'PayPal Holdings',              e:'NASDAQ', s:'Technology'},
+  {t:'SQ',   n:'Block Inc.',                   e:'NASDAQ', s:'Technology'},
+  {t:'SHOP', n:'Shopify Inc.',                 e:'NASDAQ', s:'Technology'},
+  {t:'TWLO', n:'Twilio Inc.',                  e:'NASDAQ', s:'Technology'},
+  {t:'ZM',   n:'Zoom Video Communications',   e:'NASDAQ', s:'Technology'},
+  {t:'SNOW', n:'Snowflake Inc.',               e:'NASDAQ', s:'Technology'},
+  {t:'PLTR', n:'Palantir Technologies',        e:'NASDAQ', s:'Technology'},
+  {t:'UBER', n:'Uber Technologies',            e:'NASDAQ', s:'Technology'},
+  {t:'LYFT', n:'Lyft Inc.',                    e:'NASDAQ', s:'Technology'},
+  {t:'ABNB', n:'Airbnb Inc.',                  e:'NASDAQ', s:'Technology'},
+  {t:'DASH', n:'DoorDash Inc.',                e:'NASDAQ', s:'Technology'},
+  {t:'COIN', n:'Coinbase Global',              e:'NASDAQ', s:'Technology'},
+  {t:'SPOT', n:'Spotify Technology',           e:'NASDAQ', s:'Technology'},
+  {t:'RBLX', n:'Roblox Corporation',           e:'NASDAQ', s:'Technology'},
+  {t:'HOOD', n:'Robinhood Markets',            e:'NASDAQ', s:'Technology'},
+  {t:'AMGN', n:'Amgen Inc.',                   e:'NASDAQ', s:'Healthcare'},
+  {t:'GILD', n:'Gilead Sciences',              e:'NASDAQ', s:'Healthcare'},
+  {t:'BIIB', n:'Biogen Inc.',                  e:'NASDAQ', s:'Healthcare'},
+  {t:'MRNA', n:'Moderna Inc.',                 e:'NASDAQ', s:'Healthcare'},
+  {t:'REGN', n:'Regeneron Pharmaceuticals',    e:'NASDAQ', s:'Healthcare'},
+  {t:'VRTX', n:'Vertex Pharmaceuticals',       e:'NASDAQ', s:'Healthcare'},
+  {t:'ISRG', n:'Intuitive Surgical',           e:'NASDAQ', s:'Healthcare'},
+  {t:'DXCM', n:'Dexcom Inc.',                  e:'NASDAQ', s:'Healthcare'},
+  {t:'ILMN', n:'Illumina Inc.',                e:'NASDAQ', s:'Healthcare'},
+  {t:'IDXX', n:'IDEXX Laboratories',           e:'NASDAQ', s:'Healthcare'},
+  {t:'COST', n:'Costco Wholesale',             e:'NASDAQ', s:'Consumer Goods'},
+  {t:'EBAY', n:'eBay Inc.',                    e:'NASDAQ', s:'Consumer Goods'},
+  {t:'ETSY', n:'Etsy Inc.',                    e:'NASDAQ', s:'Consumer Goods'},
+  {t:'WBA',  n:'Walgreens Boots Alliance',     e:'NASDAQ', s:'Consumer Goods'},
+  {t:'MNST', n:'Monster Beverage Corp.',       e:'NASDAQ', s:'Consumer Goods'},
+  {t:'CSCO', n:'Cisco Systems',                e:'NASDAQ', s:'Technology'},
+  {t:'DELL', n:'Dell Technologies',            e:'NASDAQ', s:'Technology'},
+  {t:'HPQ',  n:'HP Inc.',                      e:'NASDAQ', s:'Technology'},
+  {t:'IBM',  n:'IBM Corporation',              e:'NASDAQ', s:'Technology'},
+  {t:'ACN',  n:'Accenture PLC',                e:'NASDAQ', s:'Technology'},
+  // ── ETFs — Global & JSE/ASX/US ──
+  // US Broad Market
+  {t:'SPY',  n:'SPDR S&P 500 ETF Trust',           e:'NYSE',   s:'ETF — Broad Market'},
+  {t:'QQQ',  n:'Invesco NASDAQ 100 ETF',            e:'NASDAQ', s:'ETF — Technology'},
+  {t:'IVV',  n:'iShares Core S&P 500 ETF',          e:'NYSE',   s:'ETF — Broad Market'},
+  {t:'VTI',  n:'Vanguard Total Stock Market ETF',   e:'NYSE',   s:'ETF — Broad Market'},
+  {t:'VOO',  n:'Vanguard S&P 500 ETF',              e:'NYSE',   s:'ETF — Broad Market'},
+  {t:'DIA',  n:'SPDR Dow Jones Industrial ETF',     e:'NYSE',   s:'ETF — Broad Market'},
+  {t:'IWM',  n:'iShares Russell 2000 ETF',          e:'NYSE',   s:'ETF — Small Cap'},
+  {t:'VEA',  n:'Vanguard FTSE Developed Markets',   e:'NYSE',   s:'ETF — International'},
+  {t:'VWO',  n:'Vanguard FTSE Emerging Markets',    e:'NYSE',   s:'ETF — Emerging Markets'},
+  {t:'EEM',  n:'iShares MSCI Emerging Markets ETF', e:'NYSE',   s:'ETF — Emerging Markets'},
+  {t:'EFA',  n:'iShares MSCI EAFE ETF',             e:'NYSE',   s:'ETF — International'},
+  // Sector ETFs
+  {t:'XLF',  n:'Financial Select Sector SPDR',      e:'NYSE',   s:'ETF — Finance'},
+  {t:'XLK',  n:'Technology Select Sector SPDR',     e:'NYSE',   s:'ETF — Technology'},
+  {t:'XLE',  n:'Energy Select Sector SPDR',         e:'NYSE',   s:'ETF — Energy'},
+  {t:'XLV',  n:'Health Care Select Sector SPDR',    e:'NYSE',   s:'ETF — Healthcare'},
+  {t:'XLI',  n:'Industrial Select Sector SPDR',     e:'NYSE',   s:'ETF — Industrial'},
+  {t:'XLB',  n:'Materials Select Sector SPDR',      e:'NYSE',   s:'ETF — Materials'},
+  {t:'XLU',  n:'Utilities Select Sector SPDR',      e:'NYSE',   s:'ETF — Utilities'},
+  {t:'XLP',  n:'Consumer Staples Select Sector',    e:'NYSE',   s:'ETF — Consumer'},
+  {t:'XLRE', n:'Real Estate Select Sector SPDR',    e:'NYSE',   s:'ETF — Real Estate'},
+  {t:'XLC',  n:'Communication Services SPDR',       e:'NYSE',   s:'ETF — Telecom'},
+  // Commodities / Gold / Bonds
+  {t:'GLD',  n:'SPDR Gold Shares ETF',              e:'NYSE',   s:'ETF — Gold'},
+  {t:'SLV',  n:'iShares Silver Trust ETF',          e:'NYSE',   s:'ETF — Silver'},
+  {t:'IAU',  n:'iShares Gold Trust ETF',            e:'NYSE',   s:'ETF — Gold'},
+  {t:'PDBC', n:'Invesco Optimum Yield Commodity',   e:'NASDAQ', s:'ETF — Commodities'},
+  {t:'CPER', n:'United States Copper Index ETF',    e:'NYSE',   s:'ETF — Commodities'},
+  {t:'COPX', n:'Global X Copper Miners ETF',        e:'NYSE',   s:'ETF — Mining'},
+  {t:'TIP',  n:'iShares TIPS Bond ETF',             e:'NYSE',   s:'ETF — Bonds'},
+  {t:'AGG',  n:'iShares Core US Aggregate Bond',    e:'NYSE',   s:'ETF — Bonds'},
+  {t:'TLT',  n:'iShares 20+ Year Treasury Bond',    e:'NYSE',   s:'ETF — Bonds'},
+  {t:'HYG',  n:'iShares iBoxx High Yield Corp Bond',e:'NYSE',   s:'ETF — Bonds'},
+  // Mining ETFs
+  {t:'GDX',  n:'VanEck Gold Miners ETF',            e:'NYSE',   s:'ETF — Gold Miners'},
+  {t:'GDXJ', n:'VanEck Junior Gold Miners ETF',     e:'NYSE',   s:'ETF — Gold Miners'},
+  {t:'PICK', n:'iShares MSCI Global Metals & Mining',e:'NYSE',  s:'ETF — Mining'},
+  {t:'XME',  n:'SPDR S&P Metals & Mining ETF',      e:'NYSE',   s:'ETF — Mining'},
+  {t:'REMX', n:'VanEck Rare Earth/Strategic Metals', e:'NYSE',  s:'ETF — Mining'},
+  {t:'LIT',  n:'Global X Lithium & Battery Tech',   e:'NYSE',   s:'ETF — Battery/Lithium'},
+  {t:'URA',  n:'Global X Uranium ETF',              e:'NYSE',   s:'ETF — Uranium'},
+  // South Africa / JSE ETFs
+  {t:'STX40',n:'Satrix 40 ETF',                     e:'JSE',    s:'ETF — JSE Top 40'},
+  {t:'STXNDQ',n:'Satrix Nasdaq 100 ETF',            e:'JSE',    s:'ETF — Technology'},
+  {t:'STXWDM',n:'Satrix MSCI World ETF',            e:'JSE',    s:'ETF — Global'},
+  {t:'STXEMG',n:'Satrix MSCI Emerging Markets',     e:'JSE',    s:'ETF — Emerging Markets'},
+  {t:'STXFIN',n:'Satrix Financials ETF',            e:'JSE',    s:'ETF — Finance'},
+  {t:'STXRES',n:'Satrix Resources ETF',             e:'JSE',    s:'ETF — Mining & Resources'},
+  {t:'STXIND',n:'Satrix Industrial ETF',            e:'JSE',    s:'ETF — Industrial'},
+  {t:'NFEMOM',n:'Newfunds Momentum ETF',            e:'JSE',    s:'ETF — JSE Momentum'},
+  {t:'NFEDEF',n:'Newfunds Equity Defensive ETF',    e:'JSE',    s:'ETF — JSE Defensive'},
+  {t:'ETFGLD',n:'NewGold ETF (Gold)',               e:'JSE',    s:'ETF — Gold'},
+  {t:'ETFPLT',n:'NewPlat ETF (Platinum)',           e:'JSE',    s:'ETF — Platinum'},
+  {t:'GLPROP',n:'Grindrod Listed Property ETF',     e:'JSE',    s:'ETF — Property'},
+  // ASX ETFs
+  {t:'IOZ',  n:'iShares Core S&P/ASX 200 ETF',      e:'ASX',    s:'ETF — ASX Broad Market'},
+  {t:'STW',  n:'SPDR S&P/ASX 200 ETF',              e:'ASX',    s:'ETF — ASX Broad Market'},
+  {t:'VAS',  n:'Vanguard Australian Shares ETF',    e:'ASX',    s:'ETF — ASX Broad Market'},
+  {t:'VGS',  n:'Vanguard MSCI Index International', e:'ASX',    s:'ETF — International'},
+  {t:'GOLD', n:'ETFS Physical Gold ETF',            e:'ASX',    s:'ETF — Gold'},
+  {t:'QAU',  n:'BetaShares Gold Bullion ETF',       e:'ASX',    s:'ETF — Gold'},
+  {t:'MVR',  n:'VanEck Australian Resources ETF',   e:'ASX',    s:'ETF — Mining & Resources'},
+  {t:'QRE',  n:'BetaShares Australian Resources',   e:'ASX',    s:'ETF — Mining & Resources'},
+  {t:'NDQ',  n:'BetaShares NASDAQ 100 ETF',         e:'ASX',    s:'ETF — Technology'},
+  {t:'HACK', n:'BetaShares Global Cybersecurity',   e:'ASX',    s:'ETF — Technology'},
+  {t:'DRUG', n:'BetaShares Global Healthcare ETF',  e:'ASX',    s:'ETF — Healthcare'},
+
+];
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let watchlist    = JSON.parse(localStorage.getItem('sv3_list') || '[]');
+let activeFilter = 'ALL';
+let dropIdx      = -1;
+let dropItems    = [];
+
+// ── ALPHA VANTAGE ENGINE ──
+const AV_BASE  = 'https://www.alphavantage.co/query';
+const AV_SUFFIX = { JSE:'.JNB', ASX:'.AX', LSE:'.LON', NYSE:'', NASDAQ:'', OTHER:'' };
+
+let avKey    = localStorage.getItem('sv3_avkey') || '';
+let avCalls  = parseInt(localStorage.getItem('sv3_calls') || '25');
+let avDate   = localStorage.getItem('sv3_date')  || '';
+
+function checkDay() {
+  const today = new Date().toDateString();
+  if (avDate !== today) { avCalls = 25; avDate = today; saveCallState(); }
+  updateCallBadge();
+}
+
+function saveCallState() {
+  localStorage.setItem('sv3_calls', avCalls);
+  localStorage.setItem('sv3_date',  avDate);
+}
+
+function useCall(n = 1) {
+  avCalls = Math.max(0, avCalls - n);
+  saveCallState(); updateCallBadge();
+}
+
+function updateCallBadge() {
+  const el = document.getElementById('callN');
+  if (!el) return;
+  el.textContent = avCalls;
+  el.className = 'call-n' + (avCalls > 12 ? '' : avCalls > 4 ? ' warn' : ' crit');
+}
+
+function resetCalls() {
+  avCalls = 25; avDate = new Date().toDateString();
+  saveCallState(); updateCallBadge();
+  toast('Daily counter reset to 25', 'ok');
+}
+
+async function avFetch(fn, symbol) {
+  const url = `${AV_BASE}?function=${fn}&symbol=${encodeURIComponent(symbol)}&apikey=${avKey}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (json['Note'])        throw new Error('API rate limit hit — try again in a minute');
+  if (json['Information']) throw new Error('Daily limit reached (25/day). Resets tomorrow.');
+  return json;
+}
+
+// ══════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  checkDay();
+  if (avKey) {
+    document.getElementById('avBanner').classList.add('hide');
+  }
+  render();
+  initSearch();
+  initClock();
+});
+
+function saveAvKey() {
+  const k = document.getElementById('avKeyInput').value.trim();
+  if (!k) { toast('Enter your API key', 'err'); return; }
+  avKey = k;
+  localStorage.setItem('sv3_avkey', k);
+  document.getElementById('avBanner').classList.add('hide');
+  updateCallBadge();
+  toast('API key saved — Alpha Vantage engine online', 'ok');
+}
+
+function initClock() {
+  const el = document.getElementById('clkTime');
+  const tick = () => { el.textContent = new Date().toLocaleTimeString('en-ZA',{hour12:false}); };
+  tick(); setInterval(tick, 1000);
+}
+
+// ══════════════════════════════════════════════
+//  SEARCH / AUTOCOMPLETE
+// ══════════════════════════════════════════════
+function initSearch() {
+  const input = document.getElementById('searchIn');
+  const dd    = document.getElementById('dropdown');
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if (!q) { dd.classList.remove('open'); dropItems = []; dropIdx = -1; return; }
+
+    const results = STOCKS.filter(s =>
+      s.t.toLowerCase().startsWith(q) ||
+      s.n.toLowerCase().includes(q) ||
+      s.t.toLowerCase().includes(q)
+    ).slice(0, 12);
+
+    dropItems = results;
+    dropIdx = -1;
+
+    if (!results.length) {
+      dd.innerHTML = `<div class="drop-empty">NO MATCHES FOUND</div>`;
+    } else {
+      // Group by exchange
+      const groups = {};
+      results.forEach(r => {
+        if (!groups[r.e]) groups[r.e] = [];
+        groups[r.e].push(r);
+      });
+
+      let html = '';
+      Object.keys(groups).forEach(exch => {
+        html += `<div class="drop-group-label">${exch}</div>`;
+        groups[exch].forEach((s, i) => {
+          const gi = results.indexOf(s);
+          html += `<div class="drop-item" data-idx="${gi}" onclick="selectStock(${gi})">
+            <span class="drop-ticker">${highlight(s.t, q)}</span>
+            <span class="drop-name">${highlight(s.n, q)}</span>
+            <span class="drop-exch">${s.e}</span>
+            <span class="drop-sector">${s.s}</span>
+          </div>`;
+        });
+      });
+      dd.innerHTML = html;
+    }
+
+    dd.classList.add('open');
+  });
+
+  input.addEventListener('keydown', e => {
+    if (!dd.classList.contains('open')) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      dropIdx = Math.min(dropIdx + 1, dropItems.length - 1);
+      highlightDrop();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      dropIdx = Math.max(dropIdx - 1, 0);
+      highlightDrop();
+    } else if (e.key === 'Enter' && dropIdx >= 0) {
+      e.preventDefault();
+      selectStock(dropIdx);
+    } else if (e.key === 'Escape') {
+      dd.classList.remove('open');
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrap')) dd.classList.remove('open');
+  });
+}
+
+function highlight(str, q) {
+  const i = str.toLowerCase().indexOf(q.toLowerCase());
+  if (i < 0) return str;
+  return str.slice(0,i) + `<span style="color:var(--g0)">${str.slice(i,i+q.length)}</span>` + str.slice(i+q.length);
+}
+
+function highlightDrop() {
+  document.querySelectorAll('.drop-item').forEach((el,i) => {
+    el.classList.toggle('focused', i === dropIdx);
+  });
+}
+
+function selectStock(idx) {
+  const s = dropItems[idx];
+  if (!s) return;
+
+  document.getElementById('dropdown').classList.remove('open');
+  document.getElementById('searchIn').value = '';
+
+  if (watchlist.find(c => c.ticker === s.t && c.exch === s.e)) {
+    toast(`${s.t} (${s.e}) already in watchlist`, 'w'); return;
+  }
+
+  watchlist.unshift({
+    id: Date.now(),
+    ticker: s.t, exch: s.e, name: s.n, sector: s.s,
+    signal: 'PENDING', score: null, data: null, error: null, fetched: null
+  });
+
+  saveList(); render();
+  toast(`${s.t} added — click FETCH to load data`, 'ok');
+}
+
+// ══════════════════════════════════════════════
+//  FETCH + SCORE  (Yahoo Finance)
+// ══════════════════════════════════════════════
+//  FETCH + SCORE  (Alpha Vantage)
+// ══════════════════════════════════════════════
+async function fetchTarget(id) {
+  const idx = watchlist.findIndex(c => c.id === id);
+  if (idx < 0) return;
+  const c = watchlist[idx];
+  const sym = c.ticker + (AV_SUFFIX[c.exch] || '');
+
+  if (!avKey) { document.getElementById('avBanner').classList.remove('hide'); toast('API key required', 'err'); return; }
+  if (avCalls < 2) { toast('Daily limit reached (25/day). Resets tomorrow.', 'w'); return; }
+
+  watchlist[idx].loading = true; watchlist[idx].error = null;
+  saveList(); render();
+
+  try {
+    // ── Call 1: Global Quote ──
+    const qData = await avFetch('GLOBAL_QUOTE', sym);
+    useCall(1);
+    const qt = qData['Global Quote'] || {};
+
+    // ── Call 2: Company Overview ──
+    const ov = await avFetch('OVERVIEW', sym);
+    useCall(1);
+
+    const n = v => { const p = parseFloat(v); return isNaN(p) ? null : p; };
+
+    const price    = n(qt['05. price']);
+    const changePct= parseFloat((qt['10. change percent'] || '').replace('%','')) || 0;
+    const high52   = n(qt['03. high'])  ?? n(ov['52WeekHigh']);
+    const low52    = n(qt['04. low'])   ?? n(ov['52WeekLow']);
+    const pe       = n(ov['PERatio']);
+    const eps      = n(ov['EPS']);
+    const mktCap   = ov['MarketCapitalization'] || null;
+    const divYield = n(ov['DividendYield']);
+    const profitMg = n(ov['ProfitMargin']);
+    const revGrowth= n(ov['QuarterlyRevenueGrowthYOY']);
+    const epsGrowth= n(ov['QuarterlyEarningsGrowthYOY']);
+    const analTarget=n(ov['AnalystTargetPrice']);
+    const beta     = n(ov['Beta']);
+    const roe      = n(ov['ReturnOnEquityTTM']);
+    const recMean  = null;
+    const coName   = ov['Name']   || c.name;
+    const coSector = ov['Sector'] || c.sector;
+
+    // ── Call 3: Sparkline (30-day daily) ──
+    let sparkData = null;
+    if (avCalls >= 1) {
+      try {
+        const tsData = await avFetch('TIME_SERIES_DAILY', sym);
+        useCall(1);
+        const series = tsData['Time Series (Daily)'];
+        if (series) {
+          const days = Object.keys(series).sort().slice(-30);
+          sparkData = days.map(d => parseFloat(series[d]['4. close'])).filter(v => !isNaN(v));
+        }
+      } catch(e) { /* sparkline optional */ }
+    }
+
+    // ── SCORING ENGINE ──
+    let score = 50; let cats = []; let risks = [];
+
+    // Analyst upside
+    if (price && analTarget) {
+      const up = ((analTarget - price) / price) * 100;
+      if      (up > 30)  { score += 20; cats.push(`Strong analyst upside +${up.toFixed(0)}%`); }
+      else if (up > 15)  { score += 12; cats.push(`Analyst upside +${up.toFixed(0)}%`); }
+      else if (up > 0)   { score +=  5; }
+      else               { score -= 12; risks.push(`Trading above analyst target`); }
+    }
+
+    // Analyst recommendation (Yahoo: 1=Strong Buy, 3=Hold, 5=Strong Sell)
+    if (recMean !== null) {
+      if      (recMean <= 1.5) { score += 10; cats.push(`Strong analyst consensus (Buy)`); }
+      else if (recMean <= 2.5) { score +=  6; cats.push(`Analyst consensus: Buy`); }
+      else if (recMean <= 3.5) { }
+      else if (recMean <= 4.0) { score -=  6; risks.push(`Analyst consensus: Underperform`); }
+      else                     { score -= 12; risks.push(`Analyst consensus: Sell`); }
+    }
+
+    // P/E
+    if (pe !== null && pe > 0) {
+      if      (pe < 10)  { score +=  8; cats.push(`Low P/E ${pe.toFixed(1)}`); }
+      else if (pe < 20)  { score += 10; cats.push(`Healthy P/E ${pe.toFixed(1)}`); }
+      else if (pe < 35)  { score +=  3; }
+      else if (pe < 60)  { score -=  5; }
+      else               { score -= 10; risks.push(`Elevated P/E ${pe.toFixed(1)}`); }
+    }
+
+    // Revenue growth
+    if (revGrowth !== null) {
+      if      (revGrowth > 0.20) { score += 15; cats.push(`Revenue +${(revGrowth*100).toFixed(0)}% YoY`); }
+      else if (revGrowth > 0.10) { score += 10; cats.push(`Revenue +${(revGrowth*100).toFixed(0)}% YoY`); }
+      else if (revGrowth > 0)    { score +=  4; }
+      else                       { score -= 14; risks.push(`Revenue declining ${(revGrowth*100).toFixed(0)}% YoY`); }
+    }
+
+    // Profit margin
+    if (profitMg !== null) {
+      if      (profitMg > 0.20)  { score += 10; cats.push(`Profit margin ${(profitMg*100).toFixed(0)}%`); }
+      else if (profitMg > 0.10)  { score +=  6; }
+      else if (profitMg > 0)     { score +=  2; }
+      else                       { score -= 12; risks.push(`Loss-making`); }
+    }
+
+    // EPS growth
+    if (epsGrowth !== null) {
+      if      (epsGrowth > 0.15) { score +=  8; cats.push(`Earnings +${(epsGrowth*100).toFixed(0)}% YoY`); }
+      else if (epsGrowth > 0)    { score +=  4; }
+      else                       { score -=  6; risks.push(`Earnings declining`); }
+    }
+
+    // Dividend
+    if (divYield && divYield > 0.03) { score += 5; cats.push(`Dividend yield ${(divYield*100).toFixed(1)}%`); }
+
+    // Volatility
+    if (beta && beta > 2) { score -= 6; risks.push(`High volatility (Beta ${beta.toFixed(1)})`); }
+
+    // 52-week position
+    if (price && high52) {
+      const gap = (high52 - price) / high52;
+      if (gap > 0.30) { score += 6; cats.push(`${(gap*100).toFixed(0)}% below 52-wk high`); }
+    }
+
+    score = Math.min(100, Math.max(0, Math.round(score)));
+    const signal = score >= 65 ? 'BUY' : score >= 42 ? 'WATCH' : 'AVOID';
+
+    const fp = v => v !== null && !isNaN(v) ? `${(v*100).toFixed(1)}%` : 'N/A';
+    const fn = v => v !== null && !isNaN(v) ? v.toFixed(2) : 'N/A';
+
+    const currentGrowth = price
+      ? `Trading at ${fn(price)} (${changePct > 0?'+':''}${changePct.toFixed(2)}% today). Profit margin: ${fp(profitMg)}.`
+      : 'Price data unavailable for this listing.';
+
+    const potentialGrowth = analTarget && price
+      ? `Analyst mean target ${fn(analTarget)} — implied upside ${((analTarget-price)/price*100).toFixed(1)}%.${epsGrowth ? ` Earnings trend: ${fp(epsGrowth)} YoY.` : ''}`
+      : revGrowth ? `Revenue growing ${fp(revGrowth)} YoY supports medium-term upside.`
+      : 'Forward guidance data not available for this listing.';
+
+    const expectedGrowth = revGrowth !== null
+      ? `Revenue trend ${fp(revGrowth)} YoY. 12–24 month outlook: ${score > 60 ? 'positive' : score > 40 ? 'mixed' : 'cautious'} based on current fundamentals.`
+      : 'Insufficient forward data — review latest earnings reports directly.';
+
+    watchlist[idx] = { ...watchlist[idx], loading:false, error:null,
+      signal, score, fetched: new Date().toISOString(),
+      name: coName, sector: coSector,
+      data: { price, change: changePct, high52, low52, pe, eps,
+              mktCap: mktCap?.toString(), divYield, profitMg,
+              revGrowth, epsGrowth, analTarget, beta, roe },
+      cats: cats.slice(0,3), risks: risks.slice(0,3),
+      sparkline: sparkData,
+      currentGrowth, potentialGrowth, expectedGrowth
+    };
+
+    saveList(); render();
+    toast(`${c.ticker} — ${signal} (score: ${score})`, 'ok');
+
+  } catch(err) {
+    watchlist[idx].loading = false;
+    watchlist[idx].error = err.message.includes('No data') || err.message.includes('No fundamentals')
+      ? `Symbol "${sym}" not found on Alpha Vantage. Check ticker/exchange.`
+      : `Fetch failed: ${err.message}`;
+    saveList(); render();
+    toast(`${c.ticker}: fetch error`, 'err');
+  }
+}
+
+async function fetchAll() {
+  const pending = watchlist.filter(c => !c.data && !c.loading);
+  if (!pending.length) { toast('No pending targets', 'w'); return; }
+  if (!avKey) { document.getElementById('avBanner').classList.remove('hide'); return; }
+  for (const c of pending) {
+    if (avCalls < 2) { toast('API calls exhausted for today', 'w'); break; }
+    await fetchTarget(c.id);
+    await new Promise(r => setTimeout(r, 600));
+  }
+}
+
+// ══════════════════════════════════════════════
+//  FILTER
+// ══════════════════════════════════════════════
+// ── MARKET INDICES (disabled — strip kept for future use) ──
+async function loadIndices() { /* indices removed */ }
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.pill').forEach(b => b.classList.remove('on','on-a','on-r'));
+  const cls = f==='AVOID' ? 'on-r' : f==='WATCH' ? 'on-a' : 'on';
+  btn.classList.add(cls);
+  render();
+}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function render() { updateStats(); renderGrid(); }
+
+function updateStats() {
+  const a   = watchlist.filter(c => c.signal !== 'PENDING');
+  const sc  = a.filter(c=>c.score!==null).map(c=>c.score);
+  const tot = watchlist.length;
+  const buy = watchlist.filter(c=>c.signal==='BUY').length;
+  const wat = watchlist.filter(c=>c.signal==='WATCH').length;
+  const avo = watchlist.filter(c=>c.signal==='AVOID').length;
+  const avg = sc.length ? Math.round(sc.reduce((a,b)=>a+b)/sc.length) : null;
+
+  document.getElementById('sTotal').textContent = tot;
+  document.getElementById('sBuy').textContent   = buy;
+  document.getElementById('sWatch').textContent = wat;
+  document.getElementById('sAvoid').textContent = avo;
+  document.getElementById('sAvg').textContent   = avg !== null ? avg : '—';
+
+  // Hide cells with zero / no data
+  document.getElementById('statTotal').style.display = tot === 0 ? 'none' : '';
+  document.getElementById('statBuy').style.display   = buy === 0 ? 'none' : '';
+  document.getElementById('statWatch').style.display = wat === 0 ? 'none' : '';
+  document.getElementById('statAvoid').style.display = avo === 0 ? 'none' : '';
+  document.getElementById('statAvg').style.display   = avg === null ? 'none' : '';
+
+  // Hide entire bar if nothing to show
+  const anyVisible = tot > 0 || buy > 0 || wat > 0 || avo > 0 || avg !== null;
+  document.getElementById('statsBar').style.display = anyVisible ? '' : 'none';
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  let list = [...watchlist];
+  if (['JSE','ASX','NYSE','NASDAQ'].includes(activeFilter)) list = list.filter(c=>c.exch===activeFilter);
+  else if (activeFilter === 'ETF') list = list.filter(c=>c.sector?.startsWith('ETF'));
+  else if (['BUY','WATCH','AVOID'].includes(activeFilter))  list = list.filter(c=>c.signal===activeFilter);
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty">
+      <div class="empty-icon">◎</div>
+      <div class="empty-title">NO TARGETS IN WATCHLIST</div>
+      <div class="empty-sub">Search for a ticker or company name above to begin tracking</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = list.map(buildCard).join('');
+}
+
+// ══════════════════════════════════════════════
+//  SPARKLINE BUILDER
+// ══════════════════════════════════════════════
+function buildSparkline(prices, currentPrice) {
+  if (!prices || prices.length < 2) return '';
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+  const W = 400, H = 56, pad = 4;
+
+  const pts = prices.map((p, i) => {
+    const x = pad + (i / (prices.length - 1)) * (W - pad * 2);
+    const y = pad + ((max - p) / range) * (H - pad * 2);
+    return [x.toFixed(1), y.toFixed(1)];
+  });
+
+  const first = prices[0], last = prices[prices.length - 1];
+  const isUp = last >= first;
+  const color = isUp ? '#1a7f37' : '#d93025';
+  const fillColor = isUp ? 'rgba(26,127,55,0.08)' : 'rgba(217,48,37,0.08)';
+  const pct = ((last - first) / first * 100).toFixed(2);
+
+  const polyPts = pts.map(p => p.join(',')).join(' ');
+  const areaPath = `M${pts[0].join(',')} L${polyPts.replace(/ /g, ' L')} L${pts[pts.length-1][0]},${H} L${pts[0][0]},${H} Z`;
+  const lastPt = pts[pts.length - 1];
+
+  return `
+  <div class="spark-wrap">
+    <div class="spark-header">
+      <span>30-DAY TREND</span>
+      <span style="color:${color};font-weight:600">${isUp ? '+' : ''}${pct}%</span>
+    </div>
+    <svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <path d="${areaPath}" fill="${fillColor}" />
+      <polyline points="${polyPts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${lastPt[0]}" cy="${lastPt[1]}" r="3" fill="${color}"/>
+    </svg>
+    <div class="spark-range">
+      <span>L ${min.toFixed(2)}</span>
+      <span>${prices.length}D</span>
+      <span>H ${max.toFixed(2)}</span>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+//  CARD BUILDER
+// ══════════════════════════════════════════════
+function buildCard(c) {
+  const d = c.data || {};
+  const sig = c.signal || 'PENDING';
+  const sc = c.score;
+  const scCls = sc===null?'na':sc>=65?'h':sc>=42?'m':'l';
+
+  const fmt  = (v, dec=2) => v!==null&&!isNaN(v)?v.toFixed(dec):'N/A';
+  const fmtp = v => v!==null&&!isNaN(v)?`${(v*100).toFixed(1)}%`:'N/A';
+  const fmtCap = v => {
+    if (!v) return 'N/A';
+    const n = parseInt(v);
+    if (n >= 1e12) return `$${(n/1e12).toFixed(1)}T`;
+    if (n >= 1e9)  return `$${(n/1e9).toFixed(1)}B`;
+    if (n >= 1e6)  return `$${(n/1e6).toFixed(0)}M`;
+    return `$${n}`;
+  };
+
+  const priceSection = d.price ? `
+    <div class="cprice-row">
+      <span class="cprice">${fmt(d.price)}</span>
+      <span class="cchange ${d.change>0?'pos':d.change<0?'neg':'neu'}">${d.change>0?'+':''}${fmt(d.change)}%</span>
+      ${d.high52?`<span class="c52w">52W ${fmt(d.low52)} – ${fmt(d.high52)}</span>`:''}
+    </div>` : '';
+
+  const scoreSection = sc!==null ? `
+    <div class="cscore">
+      <div class="cscore-hd">
+        <span>INVESTMENT SCORE</span>
+        <span class="cscore-n ${scCls}">${sc}/100</span>
+      </div>
+      <div class="cbar"><div class="cbar-fill ${scCls}" style="width:${sc}%"></div></div>
+    </div>` : '';
+
+  const metricsSection = d.price ? `
+    <div class="cmet">
+      <div class="cmet-grid">
+        <div class="cmet-cell"><div class="cmet-l">P/E RATIO</div><div class="cmet-v">${fmt(d.pe)}</div></div>
+        <div class="cmet-cell"><div class="cmet-l">EPS</div><div class="cmet-v">${fmt(d.eps)}</div></div>
+        <div class="cmet-cell"><div class="cmet-l">MKT CAP</div><div class="cmet-v">${fmtCap(d.mktCap)}</div></div>
+        <div class="cmet-cell"><div class="cmet-l">DIV YIELD</div><div class="cmet-v ${d.divYield>0.03?'pos':''}">${fmtp(d.divYield)}</div></div>
+        <div class="cmet-cell"><div class="cmet-l">PROFIT MG</div><div class="cmet-v ${d.profitMg>0?'pos':'neg'}">${fmtp(d.profitMg)}</div></div>
+        <div class="cmet-cell"><div class="cmet-l">REV GRWTH</div><div class="cmet-v ${d.revGrowth>0?'pos':'neg'}">${fmtp(d.revGrowth)}</div></div>
+        <div class="cmet-cell"><div class="cmet-l">EPS GRWTH</div><div class="cmet-v ${d.epsGrowth>0?'pos':'neg'}">${fmtp(d.epsGrowth)}</div></div>
+        <div class="cmet-cell"><div class="cmet-l">BETA</div><div class="cmet-v ${d.beta>1.5?'neg':''}">${fmt(d.beta)}</div></div>
+      </div>
+    </div>` : '';
+
+  const targetSection = d.analTarget && d.price ? (() => {
+    const up = ((d.analTarget-d.price)/d.price*100);
+    const lo = d.low52||d.price*0.8, hi = Math.max(d.high52||d.price*1.2, d.analTarget*1.05);
+    const span = hi-lo||1;
+    const cp = Math.min(100,Math.max(0,(d.price-lo)/span*100));
+    const tp = Math.min(100,Math.max(0,(d.analTarget-lo)/span*100));
+    return `<div class="ctarget">
+      <div class="ctarget-hd">
+        <span>ANALYST TARGET ${fmt(d.analTarget)}</span>
+        <span class="cupside ${up<0?'neg':''}">${up>0?'+':''}${up.toFixed(1)}% UPSIDE</span>
+      </div>
+      <div class="ctarget-track">
+        <div class="ctarget-fill" style="width:${cp}%"></div>
+        <div class="ctarget-dot cur" style="left:${cp}%"></div>
+        <div class="ctarget-dot tgt" style="left:${tp}%"></div>
+      </div>
+    </div>`;
+  })() : '';
+
+  const growthSection = c.currentGrowth ? `
+    <div class="cgrowth">
+      <div class="cgrow-item"><span class="cgrow-tag">CURRENT</span><span class="cgrow-txt">${c.currentGrowth}</span></div>
+      <div class="cgrow-item"><span class="cgrow-tag">POTENTIAL</span><span class="cgrow-txt">${c.potentialGrowth}</span></div>
+      <div class="cgrow-item"><span class="cgrow-tag">EXPECTED</span><span class="cgrow-txt">${c.expectedGrowth}</span></div>
+    </div>` : '';
+
+  const tagsSection = (c.cats?.length||c.risks?.length) ? `
+    <div class="ctags">
+      ${(c.cats||[]).map(t=>`<span class="ctag cat">↑ ${t}</span>`).join('')}
+      ${(c.risks||[]).map(t=>`<span class="ctag risk">⚠ ${t}</span>`).join('')}
+    </div>` : '';
+
+  const pendingSection = !d.price && !c.loading && !c.error ? `
+    <div class="cpending">
+      <div class="cpending-title">AWAITING DATA</div>
+      <div class="cpending-sub">Click FETCH to load market data (uses 2-3 calls)</div>
+    </div>` : '';
+
+  const errSection = c.error ? `<div class="cerr">⚠ ${c.error}</div>` : '';
+
+  const updTxt = c.fetched
+    ? 'UPDATED '+new Date(c.fetched).toLocaleDateString('en-ZA',{day:'2-digit',month:'short'}).toUpperCase()
+    : 'NOT FETCHED';
+
+  // Sparkline SVG
+  const sparkSection = c.sparkline ? buildSparkline(c.sparkline, d.price) : '';
+
+  return `
+<div class="card ${sig}" id="card-${c.id}">
+  <div class="chead">
+    <div>
+      <div class="cticker">${c.ticker}</div>
+      <div class="cname">${c.name}</div>
+      <div class="csector">${c.sector}</div>
+    </div>
+    <div class="chead-r">
+      <div class="cexch">${c.exch}</div>
+      <div class="csignal ${sig}">${sig}</div>
+    </div>
+  </div>
+  ${priceSection}${sparkSection}${scoreSection}${metricsSection}${targetSection}${growthSection}${tagsSection}${pendingSection}${errSection}
+  <div class="cfoot">
+    <span class="cupdated">${updTxt}</span>
+    <div class="cbtns">
+      <button class="cbtn cbtn-fetch" onclick="fetchTarget(${c.id})">${d.price?'↻ REFRESH':'⚡ FETCH'}</button>
+      <button class="cbtn cbtn-del" onclick="remove(${c.id})">✕</button>
+    </div>
+  </div>
+  ${c.loading?`<div class="cloading"><div class="cloading-txt">LOADING ${c.ticker}…</div><div class="cloading-bar"><div class="cloading-fill"></div></div><div class="cloading-sub">FETCHING FROM ALPHA VANTAGE</div></div>`:''}
+</div>`;
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function remove(id) { watchlist = watchlist.filter(c=>c.id!==id); saveList(); render(); }
+function saveList()  { localStorage.setItem('sv3_list', JSON.stringify(watchlist)); }
+
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = `toast ${type} show`;
+  clearTimeout(el._t); el._t = setTimeout(()=>el.className=`toast ${type}`,3500);
+}
+</script>
+</body>
+</html>
